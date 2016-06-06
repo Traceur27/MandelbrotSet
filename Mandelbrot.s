@@ -2,7 +2,7 @@ global Mandelbrot
 
 
 section .data
-    align 32 ;must be align - othervise there would be seg fault
+    align 32 ;must be align - otherwise there would be seg fault
     one: dd 1.0
     four: dd 4.0
     align 32
@@ -44,21 +44,21 @@ Mandelbrot:
     vshufps ymm3, ymm3, 0
     VINSERTF128 ymm3, ymm3, xmm3, 1                         ;all y1 in ymm3
 
-    VBROADCASTSS ymm4, [one]                                ;all 1.0 in ymm4 - to increment iterations
+    VBROADCASTSS ymm4, [one]                                ;all 1.0 in ymm4 - to increment iteration values
     VBROADCASTSS ymm5, [four]                               ;all 4.0 in ymm5 - 2^2 to compare
 
 
-    VXORPS ymm6, ymm6, ymm6                                 ;zero out j counter
+    VXORPS ymm6, ymm6, ymm6                                 ;ymm6 - j multiple j counter values
     xor r9, r9                                              ;zero out j counter
 
-    mainloop:
+    mainloop:                                               ;main loop - moving in heigth
     cmp rsi, r9                                             ;j == height
     je endmaninloop
 
-    vmovaps ymm7, [incr]
+    vmovaps ymm7, [incr]                                    ;in each step every x will sore values incremented by 0..7
 
         xor r10, r10
-        innerloop:
+        innerloop:                                          ;innerloop - moving in width
         cmp r8, r10                                         ;width == i
         je endinnerloop                                     ;moving by 8 in each iteration
 
@@ -75,7 +75,7 @@ Mandelbrot:
         xor r11, r11                                        ;test value
         xor r12, r12                                        ;iteration counter
 
-            iterationloop:
+            iterationloop:                                  ;loop computing 8 iteration values
 
             VMULPS ymm13, ymm11, ymm11                      ;xi * xi
             VMULPS ymm14, ymm12, ymm12                      ;yi * yi
@@ -86,37 +86,37 @@ Mandelbrot:
             VMOVMSKPS r11, ymm15                            ;store test value in register
             and r11, 255                                    ;lower 8 bits are comparisons
 
-            VXORPS ymm5, ymm5, ymm5
-            VEXTRACTF128 xmm5, ymm15, 1
-            VPAND xmm5, xmm5, xmm4
+            VXORPS ymm5, ymm5, ymm5                         ;zero ymm5
+            VEXTRACTF128 xmm5, ymm15, 1                     ;get the value from upper half ymm15 to xmm5
+            VPAND xmm5, xmm5, xmm4                          ;make the values 1 or 0 for each iteration counter
             VPAND xmm15, xmm15, xmm4
-            VINSERTF128 ymm15, ymm15, xmm5, 1
+            VINSERTF128 ymm15, ymm15, xmm5, 1               ;put the upper half in its place
 
-            VBROADCASTSS ymm5, [four]
+            VBROADCASTSS ymm5, [four]                       ;all four values in place
 
-            VADDPS ymm10, ymm10, ymm15
+            VADDPS ymm10, ymm10, ymm15                      ;iterate only those counters, for which values are not above 4
 
             VMULPS ymm15, ymm11, ymm12                      ;xi*yi
             VSUBPS ymm11, ymm13, ymm14                      ;xi*xi-yi*yi
-            VADDPS ymm11, ymm11, ymm8                       ;xi <- xi*xi-yi*yi+x0 done!
+            VADDPS ymm11, ymm11, ymm8                       ;next xi = xi*xi-yi*yi+x0
             VADDPS ymm12, ymm15, ymm15                      ;2*xi*yi
-            VADDPS ymm12, ymm12, ymm9                       ;yi <- 2*xi*yi+y0
+            VADDPS ymm12, ymm12, ymm9                       ;next yi = 2*xi*yi+y0
 
             inc r12
 
-            cmp r11, 0                                      ;untill all values reach more then 4
+            cmp r11, 0                                      ;test if for all counters values reached max(2^2)
             je iterationloopend
 
-            cmp r12, rdx                                    ;or maxIter condition is met
+            cmp r12, rdx                                    ;or if maxIter condition is met
             jl iterationloop
 
 
             iterationloopend:
 
-        VCVTPS2DQ ymm10, ymm10
+        VCVTPS2DQ ymm10, ymm10                              ;convert float values to 32 bit ints
 
-        vMOVDQU [rcx], ymm10
-        add rcx, 32
+        vMOVDQU [rcx], ymm10                                ;store them under adress provided as argument
+        add rcx, 32                                         ;move the pointer by 32 bytes
 
 
         VADDPS ymm7, ymm7, ymm5                             ;next i position - increment each slot by 8
@@ -126,7 +126,7 @@ Mandelbrot:
         jmp innerloop
         endinnerloop:
 
-    VADDPS ymm6, ymm6, ymm4
+    VADDPS ymm6, ymm6, ymm4                                 ;next line - increment all y by 1
     inc r9
     jmp mainloop
 

@@ -43,6 +43,7 @@ int main(int argc, char **argv)
     int width, height, roundedWidth, maxIters;
     int * onlyPixels;
 
+    //Convert input parameters
     x1 = atof(argv[1]);
     y1 = atof(argv[2]);
     x2 = atof(argv[3]);
@@ -55,6 +56,7 @@ int main(int argc, char **argv)
     dy = (y2 - y1)/height;
     roundedWidth = (width+7) & ~7UL;
 
+    //Prepare color table - it will be used to map iteration values to colors
     rgb * colors = malloc(maxIters * sizeof(rgb));
     charRGB * charColors = malloc(maxIters * sizeof(charRGB));
 
@@ -80,6 +82,7 @@ int main(int argc, char **argv)
 
 
 
+    //Open files
     if((file = fopen(patternFile, "rb")) == NULL)
     {
         fprintf(stderr, "Blad otwarcia pliku\n");
@@ -92,6 +95,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    //Copyt headers of pattern file
     int sizeOfPattern;
     int offset;
     fseek(file, 2L, SEEK_SET);
@@ -107,6 +111,7 @@ int main(int argc, char **argv)
     rewind(file);
     rewind(buffer);
 
+    //Compute information about new picture
     int padding;
     if(width % 4 == 1)
         padding = 3;
@@ -123,6 +128,7 @@ int main(int argc, char **argv)
 
     onlyPixels = (int *)malloc(sizeOfTable*sizeof(int));
 
+    //Write new size, width, heigth and size of table with pictures to new image
     fseek(buffer, 2L, SEEK_SET);
     fwrite(&sizeOfFile, sizeof(int), 1, buffer);
     fseek(buffer, 12L, SEEK_CUR);
@@ -136,10 +142,11 @@ int main(int argc, char **argv)
     fseek(file, (long) offset, SEEK_SET);
     fseek(buffer, (long) offset, SEEK_SET);
 
-
+    //Compute iteration values
     Mandelbrot(dx, dy, x1, y1, width, height, maxIters, onlyPixels, roundedWidth);
 
 
+    //Fill the piksel table with appropriate clor values
     int i, j;
     int w = 0;
     for(i = 0; i < height; ++i)
@@ -171,7 +178,8 @@ int main(int argc, char **argv)
 }
 
 
-void usage(char * programName) {
+void usage(char * programName)
+{
     printf("Usage:\n%s x1 y1 x2 y2 width, heigth, maxIterations\n", programName);
     exit(-1);
 }
