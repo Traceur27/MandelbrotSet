@@ -49,17 +49,17 @@ Mandelbrot:
 
 
     VXORPS ymm6, ymm6, ymm6                                 ;ymm6 - j multiple j counter values
-    xor r9, r9                                              ;zero out j counter
+    xor r9d, r9d                                            ;zero out j counter
 
-    mainloop:                                               ;main loop - moving in heigth
-    cmp rsi, r9                                             ;j == height
+mainloop:                                                   ;main loop - moving in heigth
+    cmp esi, r9d                                            ;j == height
     je endmaninloop
 
     vmovaps ymm7, [incr]                                    ;in each step every x will sore values incremented by 0..7
 
-        xor r10, r10
-        innerloop:                                          ;innerloop - moving in width
-        cmp r8, r10                                         ;width == i
+        xor r10d, r10d
+innerloop:                                          		;innerloop - moving in width
+        cmp r8d, r10d                                       ;width == i
         je endinnerloop                                     ;moving by 8 in each iteration
 
 
@@ -72,10 +72,10 @@ Mandelbrot:
         vmovaps ymm11, ymm10
         vmovaps ymm12, ymm10
 
-        xor r11, r11                                        ;test value
-        xor r12, r12                                        ;iteration counter
+        xor r11d, r11d                                      ;test value
+        xor r12d, r12d                                      ;iteration counter
 
-            iterationloop:                                  ;loop computing 8 iteration values
+iterationloop:                                              ;loop computing 8 iteration values
 
             VMULPS ymm13, ymm11, ymm11                      ;xi * xi
             VMULPS ymm14, ymm12, ymm12                      ;yi * yi
@@ -83,8 +83,8 @@ Mandelbrot:
 
             VCMPPS ymm15, ymm15, ymm5, 17                   ;checking if values are more then 4; 17 - less then
 
-            VMOVMSKPS r11, ymm15                            ;store test value in register
-            and r11, 255                                    ;lower 8 bits are comparisons
+            VMOVMSKPS r11d, ymm15                           ;store test value in register
+            and r11d, 255                                   ;lower 8 bits are comparisons
 
             VXORPS ymm5, ymm5, ymm5                         ;zero ymm5
             VEXTRACTF128 xmm5, ymm15, 1                     ;get the value from upper half ymm15 to xmm5
@@ -102,16 +102,16 @@ Mandelbrot:
             VADDPS ymm12, ymm15, ymm15                      ;2*xi*yi
             VADDPS ymm12, ymm12, ymm9                       ;next yi = 2*xi*yi+y0
 
-            inc r12
+            inc r12d
 
-            cmp r11, 0                                      ;test if for all counters values reached max(2^2)
+            cmp r11d, 0                                     ;test if for all counters values reached max(2^2)
             je iterationloopend
 
-            cmp r12, rdx                                    ;or if maxIter condition is met
+            cmp r12d, edx                                   ;or if maxIter condition is met
             jl iterationloop
 
 
-            iterationloopend:
+iterationloopend:
 
         VCVTPS2DQ ymm10, ymm10                              ;convert float values to 32 bit ints
 
@@ -122,15 +122,15 @@ Mandelbrot:
         VADDPS ymm7, ymm7, ymm5                             ;next i position - increment each slot by 8
         VADDPS ymm7, ymm7, ymm5
 
-        add r10, 8
+        add r10d, 8
         jmp innerloop
-        endinnerloop:
+endinnerloop:
 
     VADDPS ymm6, ymm6, ymm4                                 ;next line - increment all y by 1
-    inc r9
+    inc r9d
     jmp mainloop
 
-    endmaninloop:
+endmaninloop:
 
 
     pop r15

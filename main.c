@@ -41,7 +41,8 @@ int main(int argc, char **argv)
     FILE * file, *buffer;
     float x1, y1, x2, y2, dx, dy;
     int width, height, roundedWidth, maxIters;
-    int * onlyPixels;
+    int * iterationValues;
+	char * pixelColors;
 
     //Convert input parameters
     x1 = atof(argv[1]);
@@ -126,7 +127,8 @@ int main(int argc, char **argv)
     int sizeOfTable = width_in_bytes* height;
     int sizeOfFile = offset + sizeOfTable;
 
-    onlyPixels = (int *)malloc(sizeOfTable*sizeof(int));
+    iterationValues = (int *)malloc(sizeOfTable*sizeof(int));
+	pixelColors = (char*)malloc(sizeOfTable*sizeof(char));
 
     //Write new size, width, heigth and size of table with pictures to new image
     fseek(buffer, 2L, SEEK_SET);
@@ -143,31 +145,33 @@ int main(int argc, char **argv)
     fseek(buffer, (long) offset, SEEK_SET);
 
     //Compute iteration values
-    Mandelbrot(dx, dy, x1, y1, width, height, maxIters, onlyPixels, roundedWidth);
+    Mandelbrot(dx, dy, x1, y1, width, height, maxIters, iterationValues, roundedWidth);
 
 
     //Fill the piksel table with appropriate clor values
     int i, j;
-    int w = 0;
+	int m = 0;
     for(i = 0; i < height; ++i)
     {
         for(j = 0; j < width; ++j)
         {
 
-            int o = onlyPixels[w];
-            fwrite(&charColors[o].b, sizeof(char), 1, buffer);
-            fwrite(&charColors[o].g, sizeof(char), 1, buffer);
-            fwrite(&charColors[o].r, sizeof(char), 1, buffer);
-
-            ++w;
+            int o = iterationValues[i*height + j];
+			pixelColors[m] = charColors[o].b;
+			pixelColors[++m] = charColors[o].g;
+			pixelColors[++m] = charColors[o].r;
+            ++m;
         }
-        w += padding;
+        m += padding;
     }
+
+	fwrite(pixelColors, sizeof(char), sizeOfTable, buffer);
 
     printf("The image was saved as %s\n", resultFileName);
 
 
-    free(onlyPixels);
+    free(iterationValues);
+	free(pixelColors);
     free(fileCopy);
     free(charColors);
     free(colors);
