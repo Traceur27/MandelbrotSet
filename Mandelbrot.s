@@ -28,6 +28,12 @@ Mandelbrot:
     push r15
 
 
+    xor eax, eax
+    mov eax, r8d                                            ;rounded width to eax
+    sub eax, edi                                            ;substract width
+    imul eax, 4                                             ;multiply it to get number of bytes
+
+
     ;VCVTPD2PS xmm0, ymm0                                   ;change double to float - compiler pass float as double
     vshufps ymm0, ymm0, 0                                   ;put dx values in down half of ymm0
     VINSERTF128 ymm0, ymm0, xmm0, 1                         ;fill ymm0 with dx values
@@ -126,6 +132,7 @@ iterationloopend:
         jmp innerloop
 endinnerloop:
 
+    sub rcx, rax                                            ;move back if needed
     VADDPS ymm6, ymm6, ymm4                                 ;next line - increment all y by 1
     inc r9d
     jmp mainloop

@@ -147,22 +147,24 @@ int main(int argc, char **argv)
     //Compute iteration values
     Mandelbrot(dx, dy, x1, y1, width, height, maxIters, iterationValues, roundedWidth);
 
-
     //Fill the piksel table with appropriate clor values
     int i, j;
 	int m = 0;
+    int q;
     for(i = 0; i < height; ++i)
     {
         for(j = 0; j < width; ++j)
         {
 
-            int o = iterationValues[i*height + j];
+            int o = iterationValues[i*width + j];
 			pixelColors[m] = charColors[o].b;
 			pixelColors[++m] = charColors[o].g;
 			pixelColors[++m] = charColors[o].r;
             ++m;
+            //++q;
         }
         m += padding;
+        //q += 4;
     }
 
 	fwrite(pixelColors, sizeof(char), sizeOfTable, buffer);
