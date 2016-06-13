@@ -26,6 +26,7 @@ static rgb   hsv2rgb(hsv in);
 
 void Mandelbrot(float dx, float dy, float x1, float y1, int width, int height, int maxIters, int * table, int roundedWidth);
 void usage(char * programName);
+void validateParameters(float x1, float y1, float x2, float y2, int width, int height, int maxIters);
 
 
 int main(int argc, char **argv)
@@ -52,6 +53,8 @@ int main(int argc, char **argv)
     width = atoi(argv[5]);
     height = atoi(argv[6]);
     maxIters = atoi(argv[7]);
+
+    validateParameters(x1, y1, x2, y2, width, height, maxIters);
 
     dx = (x2 - x1)/width;
     dy = (y2 - y1)/height;
@@ -127,7 +130,7 @@ int main(int argc, char **argv)
     int sizeOfTable = width_in_bytes* height;
     int sizeOfFile = offset + sizeOfTable;
 
-    iterationValues = (int *)malloc(sizeOfTable*sizeof(int));
+    iterationValues = (int *)malloc((sizeOfTable + 7)*sizeof(int));
 	pixelColors = (char*)malloc(sizeOfTable*sizeof(char));
 
     //Write new size, width, heigth and size of table with pictures to new image
@@ -185,6 +188,26 @@ void usage(char * programName)
 {
     printf("Usage:\n%s x1 y1 x2 y2 width, heigth, maxIterations\n", programName);
     exit(-1);
+}
+
+
+void validateParameters(float x1, float y1, float x2, float y2, int width, int height, int maxIters)
+{
+    if(x1 < -10 || x1 > 10 || x2 < -10 || x2 > 10 || y1 < -10 || y1 > 10 || y2 < -10 || y2 > 10)
+    {
+        printf("Values x1, x2, y1, y2 must be in range of [-10, 10]\n");
+        exit(-1);
+    }
+    if(width <= 0 || width > 2000 || height <= 0 || height > 2000)
+    {
+        printf("Width and height must be in range of (0, 2000]\n");
+        exit(-1);
+    }
+    if(maxIters <= 0 || maxIters > 5000)
+    {
+        printf("Maximal iterations must be in range of (0, 5000]\n");
+        exit(-1);
+    }
 }
 
 
